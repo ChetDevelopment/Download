@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AllVideoSaver - Download Videos from Social Platforms</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 min-h-screen transition-colors duration-300">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">AllVideoSaver</h1>
+            <p class="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">Download videos from TikTok, YouTube, Facebook and more with just one click. Choose your preferred quality and save videos directly to your device.</p>
+            
+            <!-- Dark Mode Toggle -->
+            <div class="flex justify-center mt-6">
+                <button id="theme-toggle" class="bg-white dark:bg-gray-800 shadow-md rounded-full p-3 text-gray-700 dark:text-gray-300 hover:shadow-lg transition-all">
+                    <i class="fas fa-moon dark:hidden"></i>
+                    <i class="fas fa-sun hidden dark:block"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Card -->
+        <div class="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden transition-all duration-300">
+            <!-- Platform Icons -->
+            <div class="bg-gray-50 dark:bg-gray-700 py-4 px-6">
+                <div class="flex justify-center space-x-8">
+                    <div class="text-center">
+                        <i class="fab fa-tiktok text-2xl text-gray-800 dark:text-gray-200"></i>
+                        <p class="text-xs mt-1 text-gray-600 dark:text-gray-400">TikTok</p>
+                    </div>
+                    <div class="text-center">
+                        <i class="fab fa-youtube text-2xl text-red-600"></i>
+                        <p class="text-xs mt-1 text-gray-600 dark:text-gray-400">YouTube</p>
+                    </div>
+                    <div class="text-center">
+                        <i class="fab fa-facebook text-2xl text-blue-600"></i>
+                        <p class="text-xs mt-1 text-gray-600 dark:text-gray-400">Facebook</p>
+                    </div>
+                    <div class="text-center">
+                        <i class="fab fa-instagram text-2xl text-pink-600"></i>
+                        <p class="text-xs mt-1 text-gray-600 dark:text-gray-400">Instagram</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Section -->
+            <div class="p-6 md:p-8">
+                <div class="mb-6">
+                    <label for="video-url" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Paste Video URL</label>
+                    <div class="flex">
+                        <input 
+                            type="text" 
+                            id="video-url" 
+                            placeholder="https://www.tiktok.com/..." 
+                            class="flex-1 px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-l-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white transition-colors"
+                        >
+                        <button 
+                            id="fetch-btn" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-r-lg font-medium transition-colors flex items-center"
+                        >
+                            <i class="fas fa-download mr-2"></i>
+                            Fetch
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quality Selection -->
+                <div class="mb-6 hidden" id="quality-section">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Quality</label>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <button class="quality-btn border border-gray-300 dark:border-gray-600 rounded-lg py-2 px-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-quality="360">360p</button>
+                        <button class="quality-btn border border-gray-300 dark:border-gray-600 rounded-lg py-2 px-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-quality="720">720p</button>
+                        <button class="quality-btn border border-gray-300 dark:border-gray-600 rounded-lg py-2 px-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-quality="1080">1080p</button>
+                        <button class="quality-btn border border-gray-300 dark:border-gray-600 rounded-lg py-2 px-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" data-quality="audio">Audio Only</button>
+                    </div>
+                </div>
+
+                <!-- Loading Spinner -->
+                <div id="loading-spinner" class="hidden justify-center py-8">
+                    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+                </div>
+
+                <!-- Video Preview -->
+                <div id="video-preview" class="hidden">
+                    <h3 class="text-lg font-medium text-gray-800 dark:text-gray-200 mb-4">Video Preview</h3>
+                    <div class="bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                        <div class="aspect-video bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
+                            <img id="thumbnail" src="" alt="Video thumbnail" class="hidden w-full h-full object-cover">
+                            <div id="no-thumbnail" class="text-gray-500 dark:text-gray-400 text-center p-4">
+                                <i class="fas fa-play-circle text-4xl mb-2"></i>
+                                <p>Video Preview</p>
+                            </div>
+                        </div>
+                        <div class="p-4">
+                            <h4 id="video-title" class="font-medium text-gray-800 dark:text-gray-200 mb-2"></h4>
+                            <div class="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+                                <span id="video-duration"></span>
+                                <span id="video-platform"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-4 flex justify-center">
+                        <button id="download-btn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center">
+                            <i class="fas fa-download mr-2"></i>
+                            Download Video
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Error Message -->
+                <div id="error-message" class="hidden mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-3"></i>
+                        <p id="error-text" class="text-red-700 dark:text-red-400"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="max-w-2xl mx-auto mt-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p>AllVideoSaver is for educational and personal use only. Please respect the Terms of Service of each platform.</p>
+        </div>
+    </div>
+
+    <script>
+        // Backend API URL - Update this to match your Flask server
+        const API_BASE_URL = 'http://localhost:5000'; // Change this in production
+
+        // Dark mode toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const html = document.documentElement;
+
+        // Check for saved theme preference or prefer OS setting
+        if (localStorage.getItem('theme') === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            html.classList.add('dark');
+        } else {
+            html.classList.remove('dark');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+        });
+
+        // DOM Elements
+        const videoUrlInput = document.getElementById('video-url');
+        const fetchBtn = document.getElementById('fetch-btn');
+        const qualitySection = document.getElementById('quality-section');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const videoPreview = document.getElementById('video-preview');
+        const thumbnail = document.getElementById('thumbnail');
+        const noThumbnail = document.getElementById('no-thumbnail');
+        const videoTitle = document.getElementById('video-title');
+        const videoDuration = document.getElementById('video-duration');
+        const videoPlatform = document.getElementById('video-platform');
+        const downloadBtn = document.getElementById('download-btn');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const qualityButtons = document.querySelectorAll('.quality-btn');
+
+        // Selected quality and video info
+        let selectedQuality = '720';
+        let currentVideoInfo = null;
+
+        // Event Listeners
+        fetchBtn.addEventListener('click', fetchVideoInfo);
+        downloadBtn.addEventListener('click', downloadVideo);
+        
+        qualityButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remove active class from all buttons
+                qualityButtons.forEach(btn => {
+                    btn.classList.remove('bg-blue-100', 'dark:bg-blue-900', 'border-blue-500', 'text-blue-700', 'dark:text-blue-300');
+                    btn.classList.add('border-gray-300', 'dark:border-gray-600');
+                });
+                
+                // Add active class to clicked button
+                this.classList.remove('border-gray-300', 'dark:border-gray-600');
+                this.classList.add('bg-blue-100', 'dark:bg-blue-900', 'border-blue-500', 'text-blue-700', 'dark:text-blue-300');
+                
+                selectedQuality = this.getAttribute('data-quality');
+            });
+        });
+
+        // Functions
+        async function fetchVideoInfo() {
+            const url = videoUrlInput.value.trim();
+            
+            if (!url) {
+                showError('Please enter a video URL');
+                return;
+            }
+            
+            // Reset UI
+            hideError();
+            videoPreview.classList.add('hidden');
+            qualitySection.classList.add('hidden');
+            loadingSpinner.classList.remove('hidden');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/fetch-info`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch video information');
+                }
+
+                currentVideoInfo = data;
+                displayVideoInfo(data);
+                loadingSpinner.classList.add('hidden');
+                qualitySection.classList.remove('hidden');
+                videoPreview.classList.remove('hidden');
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Failed to fetch video information. Please check the URL and try again.');
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+        
+        function displayVideoInfo(info) {
+            videoTitle.textContent = info.title;
+            videoDuration.textContent = `Duration: ${info.duration}`;
+            videoPlatform.textContent = `Platform: ${info.platform.charAt(0).toUpperCase() + info.platform.slice(1)}`;
+            
+            if (info.thumbnail) {
+                thumbnail.src = info.thumbnail;
+                thumbnail.classList.remove('hidden');
+                noThumbnail.classList.add('hidden');
+            } else {
+                thumbnail.classList.add('hidden');
+                noThumbnail.classList.remove('hidden');
+            }
+        }
+        
+        async function downloadVideo() {
+            const url = videoUrlInput.value.trim();
+            
+            if (!url) {
+                showError('Please enter a video URL');
+                return;
+            }
+            
+            // Show loading on download button
+            const originalText = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Downloading...';
+            downloadBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/download`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        url: url,
+                        quality: selectedQuality
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Download failed');
+                }
+
+                // Get the filename from response headers or create one
+                const contentDisposition = response.headers.get('content-disposition');
+                let filename = 'video.mp4';
+                
+                if (contentDisposition) {
+                    const filenameMatch = contentDisposition.match(/filename="?(.+)"?/);
+                    if (filenameMatch) {
+                        filename = filenameMatch[1];
+                    }
+                }
+
+                // Create blob and download link
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(downloadUrl);
+
+            } catch (error) {
+                console.error('Download error:', error);
+                showError(error.message || 'Download failed. Please try again.');
+            } finally {
+                // Reset button
+                downloadBtn.innerHTML = originalText;
+                downloadBtn.disabled = false;
+            }
+        }
+        
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.remove('hidden');
+        }
+        
+        function hideError() {
+            errorMessage.classList.add('hidden');
+        }
+
+        // Set default quality selection
+        qualityButtons.forEach(button => {
+            if (button.getAttribute('data-quality') === selectedQuality) {
+                button.classList.add('bg-blue-100', 'dark:bg-blue-900', 'border-blue-500', 'text-blue-700', 'dark:text-blue-300');
+                button.classList.remove('border-gray-300', 'dark:border-gray-600');
+            }
+        });
+    </script>
+</body>
+</html>
